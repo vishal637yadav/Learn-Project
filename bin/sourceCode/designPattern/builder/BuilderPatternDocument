@@ -1,0 +1,189 @@
+Previously, we had a look at the factory and the abstract factory pattern. 
+These patterns serve their purpose and can be really useful. 
+However, there are several use cases where we have to create a very complex object, 
+which requires different steps and actions for each one. 
+In such cases, the Builder design pattern can be really useful.
+
+The Builder design pattern is a creational design pattern and 
+can be used to create complex objects step by step.
+
+Supposing we have an object with many dependencies and need to acquire each one of these dependencies, 
+certain actions have to be issued. 
+In such cases, we can use the Builder pattern in order to:
+
+Encapsulate, create, and assemble the parts of a complex object in a separate Builder object.
+Delegate the object creation to a Builder object instead of creating the objects directly.
+Imagine the scenario of a backend system that has to compose and send emails.
+Creating an email might be a complex procedure. 
+You have to specify the title, set the recipients, add a greeting, and add a closing statement. 
+You might also want to use mustache instead. Needless to say, there is a wide range of options.
+
+Having one class for all the actions needed to create an email might 
+make our class bloated and loose its original purpose.
+
+So, we will start with the class responsible for sending the email.
+
+
+package com.gkatzioura.design.creational.builder;
+public class Email {
+    private final String title;
+    private final String recipients;
+    private final String message;
+    public Email(String title, String recipients, String message) {
+        this.title = title;
+        this.recipients = recipients;
+        this.message = message;
+    }
+    public String getTitle() {
+        return title;
+    }
+    public String getRecipients() {
+        return recipients;
+    }
+    public String getMessage() {
+        return message;
+    }
+    public void send() {
+    }
+}
+
+
+As you can see, the class contains only three string fields and there is no extra processing on them. 
+So, we shall create a builder class that will handle the message formatting, 
+the recipient representation, 
+and the creation of the Email   class.
+
+package com.gkatzioura.design.creational.builder;
+import java.util.HashSet;
+import java.util.Set;
+public class EmailBuilder {
+    private Set recipients = new HashSet();
+    private String title;
+    private String greeting;
+    private String mainText;
+    private String closing;
+    public EmailBuilder addRecipient(String recipient) {
+        this.recipients.add(recipient);
+        return this;
+    }
+    public EmailBuilder removeRecipient(String recipient) {
+        this.recipients.remove(recipient);
+        return this;
+    }
+    public EmailBuilder setTitle(String title) {
+        this.title = title;
+        return this;
+    }
+    public EmailBuilder setGreeting(String greeting) {
+        this.greeting = greeting;
+        return this;
+    }
+    public EmailBuilder setMainText(String mainText) {
+        this.mainText = mainText;
+        return this;
+    }
+    public EmailBuilder setClosing(String closing) {
+        this.closing = closing;
+        return this;
+    }
+    public Email create() {
+        String message = greeting+"\n"+mainText+"\n"+closing;
+        String recipientSection = commaSeparatedRecipients();
+        return new Email(title,recipientSection,message);
+    }
+    private String commaSeparatedRecipients() {
+        StringBuilder sb = new StringBuilder();
+        for(String recipient:recipients) {
+            sb.append(",").append(recipient);
+        }
+        return sb.toString().replaceFirst(",","");
+    }
+}
+
+
+The next step is to make the email creation more strict so 
+that creating an email would only be possible through the EmailBuilder.
+
+
+package com.gkatzioura.design.creational.builder;
+import java.util.HashSet;
+import java.util.Set;
+public class Email {
+    private final String title;
+    private final String recipients;
+    private final String message;
+    private Email(String title, String recipients, String message) {
+        this.title = title;
+        this.recipients = recipients;
+        this.message = message;
+    }
+    public String getTitle() {
+        return title;
+    }
+    public String getRecipients() {
+        return recipients;
+    }
+    public String getMessage() {
+        return message;
+    }
+    public void send() {
+    }
+    public static class EmailBuilder {
+        private Set recipients = new HashSet();
+        private String title;
+        private String greeting;
+        private String mainText;
+        private String closing;
+        public EmailBuilder addRecipient(String recipient) {
+            this.recipients.add(recipient);
+            return this;
+        }
+        public EmailBuilder removeRecipient(String recipient) {
+            this.recipients.remove(recipient);
+            return this;
+        }
+        public EmailBuilder setTitle(String title) {
+            this.title = title;
+            return this;
+        }
+        public EmailBuilder setGreeting(String greeting) {
+            this.greeting = greeting;
+            return this;
+        }
+        public EmailBuilder setMainText(String mainText) {
+            this.mainText = mainText;
+            return this;
+        }
+        public EmailBuilder setClosing(String closing) {
+            this.closing = closing;
+            return this;
+        }
+        public Email build() {
+            String message = greeting+"\n"+mainText+"\n"+closing;
+            String recipientSection = commaSeparatedRecipients();
+            return new Email(title,recipientSection,message);
+        }
+        private String commaSeparatedRecipients() {
+            StringBuilder sb = new StringBuilder();
+            for(String recipient:recipients) {
+                sb.append(",").append(recipient);
+            }
+            return sb.toString().replaceFirst(",","");
+        }
+    }
+}
+
+
+The end result of using the Builder pattern for creating an email will look like this:
+
+Email email = new Email.EmailBuilder()
+    .addRecipient("john@Doe.com")
+    .setMainText("Check the builder pattern")
+    .setGreeting("Hi John!")
+    .setClosing("Regards")
+    .setTitle("Builder pattern resources")
+    .build();
+
+
+To summarize, by using the Builder design pattern, 
+we were able to create a complex object and its complex parts.
